@@ -6,17 +6,21 @@ import os
 app = flask.Flask(__name__)
 
 # Use environment variables for sensitive data
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')  # Make sure to use an actual secret in production
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'supersecretkey')  # Use an actual secret in production
 
 # SQL Server connection details
-server = os.getenv('DB_SERVER', '34.27.168.219')  # IP of Cloud SQL instance with port
+server = os.getenv('DB_SERVER', '34.57.106.211')  # IP of Cloud SQL instance with port
 database = os.getenv('DB_NAME', 'myappdb')  # Database name
 username = os.getenv('DB_USER', 'sqlserver')  # SQL Server username
 password = os.getenv('DB_PASSWORD', 'Tn50@4669')  # SQL Server password
 
+# Backend validation service URL
+backend_url = os.getenv('BACKEND_URL', 'http://127.0.0.1:5001')  # Update this for deployment
+
 # Connection string
 conn_str = f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
 print("Connection String:", conn_str)
+
 
 def get_all_logins():
     """Fetches all login entries from the database."""
@@ -40,30 +44,34 @@ def get_all_logins():
         print(f"Database error: {e}")
         return []  # Return an empty list if there's an error
 
+
 @app.route('/')
 def index():
-    return flask.render_template('login.html')  # Render the login form
+    """Render the login form."""
+    return flask.render_template('login.html')
+
 
 @app.route('/login', methods=['POST'])
 def login():
+    """Handles user login by validating credentials with the backend service."""
     username = flask.request.form['username']
     password = flask.request.form['password']
 
     try:
-        # Make POST request to the validation service with a timeout
+        # Make POST request to the backend service for validation
         response = requests.post(
-            '/validate',
+            f'{backend_url}/validate',
             json={'username': username, 'password': password},
             timeout=10  # Set a 10-second timeout
         )
 
-        # Check if the response was successful and JSON formatted
+        # Ensure the response is successful
         response.raise_for_status()
 
         # Ensure the response is JSON before parsing
         if response.headers.get('Content-Type') == 'application/json':
             response_data = response.json()
-            print(f"Response from database service: {response_data}")
+            print(f"Response from backend: {response_data}")
 
             # Check if login is valid
             if response_data.get('valid'):
@@ -71,7 +79,7 @@ def login():
                 return flask.redirect(flask.url_for('welcome'))  # Redirect to the welcome page
             else:
                 flask.flash('Invalid credentials, please try again.', 'danger')
-                return flask.redirect(flask.url_for('index'))  # Reload the login page with an error
+                return flask.redirect(flask.url_for('index'))  # Reload login page with error
 
         else:
             flask.flash('Unexpected response format from the server.', 'danger')
@@ -89,9 +97,12 @@ def login():
         flask.flash(f'An error occurred: {str(e)}', 'danger')
         return flask.redirect(flask.url_for('index'))
 
+
 @app.route('/welcome')
 def welcome():
-    return "Welcome to your dashboard!"  # This is a placeholder page for successful login
+    """Placeholder welcome page for successful login."""
+    return "Welcome to your dashboard!"
+
 
 @app.route('/logins', methods=['GET'])
 def display_logins():
@@ -99,5 +110,8 @@ def display_logins():
     logins = get_all_logins()
     return flask.render_template('logins.html', logins=logins)
 
+
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)  # Run the UserInterface microservice on port 5000
+    # Run the UserInterface microservice on port 5000
+    app.run(host='0.0.0.0', port=5000, debug=True)
+

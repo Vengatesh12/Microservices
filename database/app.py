@@ -15,7 +15,7 @@ CORS(app)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
 
 # SQL Server connection details from environment variables
-server = '34.27.168.219'
+server = '34.57.106.211'
 database = 'myappdb'
 username = 'sqlserver'
 password = 'Tn50@4669'
