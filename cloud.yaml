@@ -1,0 +1,18 @@
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$iron-wave-434723-e4/myapp:$SHORT_SHA', '.']
+
+  # Step 2: Deploy the image to GKE
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['set', 'image', 'deployment/myapp-deployment', 'myapp=gcr.io/$iron-wave-434723-e4/myapp:$SHORT_SHA', '--namespace=default']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+images:
+  - 'gcr.io/$iron-wave-434723-e4/myapp:$SHORT_SHA'
+
+substitutions:
+  _ZONE: 'northamerica-northeast1'  # Replace with your GCP zone
+  _CLUSTER_NAME: 'my-flask-cluster'  # Replace with your GKE cluster name

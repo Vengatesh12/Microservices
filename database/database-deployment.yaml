@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: database
+        image: gcr.io/iron-wave-434723-e4/backend:v1
+        ports:
+        - containerPort: 1433
+        env:
+          - name: DB_USER
+            value: "sqlserver"
+          - name: DB_PASSWORD
+            value: "Tn50@4669"
+          - name: DB_HOST
+            value: "34.173.150.181"
+          - name: DB_NAME
+            value: "myappdb"

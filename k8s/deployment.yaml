@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: backend-app:v1  # Ensure you have built this image and pushed to a registry if needed
+        ports:
+        - containerPort: 5001
+        env:
+        - name: DB_SERVER
+          value: "34.173.150.181"  # Replace with your Cloud SQL instance IP
+        - name: DB_NAME
+          value: "myappdb"  # Replace with your database name
+        - name: DB_USER
+          value: "sqlserver"  # Replace with your database username
+        - name: DB_PASSWORD
+          value: "Tn50@4669"  # Replace with your database password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 5001
+    targetPort: 5001
+  type: ClusterIP  # This will be internal within Kubernetes, you can change to LoadBalancer if needed
+
